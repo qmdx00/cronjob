@@ -23,30 +23,29 @@ type AppInfo interface {
 
 // App application struct.
 type App struct {
-	opts     options
-	ctx      context.Context
-	cancel   func()
-	//instance *registry.ServiceInstance
+	opts   options
+	ctx    context.Context
+	cancel func()
 }
 
 // New return new App
 func New(opts ...Option) *App {
-	options := options{
+	_opts := options{
 		ctx:    context.Background(),
 		logger: zap.NewExample(),
 		sigs:   []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
 	}
 	if id, err := uuid.NewUUID(); err == nil {
-		options.id = id.String()
+		_opts.id = id.String()
 	}
 	for _, o := range opts {
-		o(&options)
+		o(&_opts)
 	}
-	ctx, cancel := context.WithCancel(options.ctx)
+	ctx, cancel := context.WithCancel(_opts.ctx)
 	return &App{
 		ctx:    ctx,
 		cancel: cancel,
-		opts:   options,
+		opts:   _opts,
 	}
 }
 
