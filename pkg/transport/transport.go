@@ -1,6 +1,8 @@
 package transport
 
-import "context"
+import (
+	"context"
+)
 
 // Server ...
 type Server interface {

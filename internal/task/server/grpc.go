@@ -2,26 +2,26 @@ package server
 
 import (
 	"context"
-	"fmt"
+	log "github.com/qmdx00/crobjob/pkg/log"
 	"github.com/qmdx00/crobjob/pkg/transport"
-	"log"
 )
 
 type GRPCServer struct {
+	helper *log.Helper
 }
 
-func NewGRPCServer() (transport.Server, func(), error) {
-	return &GRPCServer{}, func() {
-		fmt.Println("cleanup")
+func NewGRPCServer(helper *log.Helper) (transport.Server, func(), error) {
+	return &GRPCServer{helper: helper}, func() {
+		helper.Error("cleanup")
 	}, nil
 }
 
 func (s *GRPCServer) Start(ctx context.Context) error {
-	log.Println("server start")
+	s.helper.Debug("server start")
 	return nil
 }
 
 func (s *GRPCServer) Stop(ctx context.Context) error {
-	log.Println("server stop")
+	s.helper.Debug("server stop")
 	return nil
 }

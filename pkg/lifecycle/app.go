@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
@@ -18,7 +17,6 @@ type AppInfo interface {
 	Name() string
 	Version() string
 	Metadata() map[string]string
-	//Endpoint() []string
 }
 
 // App application struct.
@@ -32,7 +30,6 @@ type App struct {
 func New(opts ...Option) *App {
 	_opts := options{
 		ctx:    context.Background(),
-		logger: zap.NewExample(),
 		sigs:   []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
 	}
 	if id, err := uuid.NewUUID(); err == nil {

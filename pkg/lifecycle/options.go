@@ -3,7 +3,6 @@ package lifecycle
 import (
 	"context"
 	"github.com/qmdx00/crobjob/pkg/transport"
-	"go.uber.org/zap"
 	"os"
 )
 
@@ -12,17 +11,15 @@ type Option func(*options)
 
 // options application option struct.
 type options struct {
-	id        string
-	name      string
-	version   string
-	metadata  map[string]string
+	id       string
+	name     string
+	version  string
+	metadata map[string]string
 
 	ctx  context.Context
 	sigs []os.Signal
 
-	logger    *zap.Logger
-	//registrar registry.Registrar
-	servers   []transport.Server
+	servers []transport.Server
 }
 
 // WithID with service id.
@@ -48,11 +45,6 @@ func WithMetadata(md map[string]string) Option {
 // WithContext with service context.
 func WithContext(ctx context.Context) Option {
 	return func(o *options) { o.ctx = ctx }
-}
-
-// WithLogger with service logger.
-func WithLogger(logger *zap.Logger) Option {
-	return func(o *options) { o.logger = logger }
 }
 
 // WithSignal with exit signals.
