@@ -15,8 +15,8 @@ type Server struct {
 	grpc *grpc.Server
 }
 
-func NewServer(log *zap.Logger, grpc *grpc.Server) (transport.Server, error) {
-	return &Server{log: log, grpc: grpc}, nil
+func NewServer(log *zap.Logger, grpc *grpc.Server) transport.Server {
+	return &Server{log: log, grpc: grpc}
 }
 
 func (s *Server) Start(ctx context.Context) error {
