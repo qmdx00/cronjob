@@ -1,0 +1,35 @@
+syntax = "proto3";
+option go_package = ".;rpc";
+
+message Task {
+    message Model {
+        int64 id = 1;
+        string name = 2;
+        string taskType = 3;
+        string taskData = 4;
+        string cronExpr = 5;
+        int64 timeout = 6;
+        string description = 7;
+        string createdAt = 8;
+        string updatedAt = 9;
+    }
+
+    message List {
+        repeated Model list = 1;
+    }
+
+    message GetListByType {
+        string taskType = 1;
+        int32 limit = 2;
+        int32 offset = 3;
+    }
+
+    message CreateTask {
+        Model data = 1;
+    }
+}
+
+service TaskService {
+    rpc GetListByType(Task.GetListByType) returns (Task.List);
+    rpc CreateTask(Task.CreateTask) returns (Task.Model);
+}

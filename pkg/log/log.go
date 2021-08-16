@@ -1,6 +1,16 @@
 package log
 
-// Logger ...
-type Logger interface {
-	Log(level Level, keyvals ...interface{})
+import (
+	"go.uber.org/zap"
+)
+
+// loggerMap store loggers with different service.
+var loggerMap = make(map[string]*zap.Logger)
+
+func NewLogger(service string) *zap.Logger {
+	if loggerMap[service] == nil {
+		loggerMap[service] = zap.NewExample(zap.Fields(
+			zap.String("service", service)))
+	}
+	return loggerMap[service]
 }

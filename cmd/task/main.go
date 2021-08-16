@@ -1,15 +1,18 @@
 package main
 
 import (
+	"github.com/qmdx00/crobjob/internal/task/constant"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
 	"github.com/qmdx00/crobjob/pkg/transport"
 )
 
 func newApp(server transport.Server) *lifecycle.App {
 	return lifecycle.New(
-		lifecycle.WithName("task service"),
+		lifecycle.WithName("cronjob task"),
 		lifecycle.WithVersion("1.0"),
-		lifecycle.WithMetadata(map[string]string{}),
+		lifecycle.WithMetadata(map[string]string{
+			constant.GRPCAddr: "127.0.0.1:8088", // HACK: replaced by config file
+		}),
 		lifecycle.WithServer(server))
 }
 

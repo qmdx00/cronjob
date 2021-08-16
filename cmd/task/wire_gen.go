@@ -6,23 +6,23 @@
 package main
 
 import (
+	"github.com/qmdx00/crobjob/internal/task/biz"
 	"github.com/qmdx00/crobjob/internal/task/log"
 	"github.com/qmdx00/crobjob/internal/task/server"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
-	log2 "github.com/qmdx00/crobjob/pkg/log"
 )
 
 // Injectors from wire.go:
 
 func initApp() (*lifecycle.App, func(), error) {
-	logger := log.NewLogger()
-	helper := log2.NewHelper(logger)
-	transportServer, cleanup, err := server.NewGRPCServer(helper)
+	logger := log.NewTaskLogger()
+	taskBusiness := biz.NewTaskBusiness(logger)
+	grpcServer := server.NewGRPC(taskBusiness)
+	transportServer, err := server.NewServer(logger, grpcServer)
 	if err != nil {
 		return nil, nil, err
 	}
 	app := newApp(transportServer)
 	return app, func() {
-		cleanup()
 	}, nil
 }
