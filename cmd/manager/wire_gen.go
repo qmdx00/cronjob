@@ -16,7 +16,12 @@ import (
 
 func initApp() (*lifecycle.App, func(), error) {
 	logger := log.NewManagerLogger()
-	taskBusiness := biz.NewTaskBusiness(logger)
+	clientConn, err := biz.NewGRPCConn()
+	if err != nil {
+		return nil, nil, err
+	}
+	taskServiceClient := biz.NewTaskServiceClient(clientConn)
+	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient)
 	engine := server.NewHTTPRouter(logger, taskBusiness)
 	transportServer := server.NewHttpServer(logger, engine)
 	app := newApp(transportServer)

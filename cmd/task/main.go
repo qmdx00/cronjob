@@ -11,7 +11,7 @@ func newApp(server transport.Server) *lifecycle.App {
 		lifecycle.WithName("cronjob task"),
 		lifecycle.WithVersion("1.0"),
 		lifecycle.WithMetadata(map[string]string{
-			constant.GRPCAddr: "127.0.0.1:8088", // HACK: replaced by config file
+			constant.GRPCAddr: "127.0.0.1:8888", // HACK: replaced by config file
 		}),
 		lifecycle.WithServer(server))
 }
