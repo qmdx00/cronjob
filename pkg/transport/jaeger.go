@@ -14,8 +14,23 @@ import (
 	"io"
 )
 
-type MDReaderWriter struct {
+type MDCarrier struct {
 	metadata.MD
+}
+
+func (m MDCarrier) Set(key, val string) {
+	m.MD[key] = append(m.MD[key], val)
+}
+
+func (m MDCarrier) ForeachKey(handler func(key, val string) error) error {
+	for k, strs := range m.MD {
+		for _, v := range strs {
+			if err := handler(k, v); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // JaegerOption ...
@@ -24,7 +39,7 @@ func JaegerOption(tracer opentracing.Tracer, log *zap.Logger) grpc.ServerOption 
 }
 
 // NewJaegerTracer ...
-func NewJaegerTracer(service string, endpoint string) (opentracing.Tracer, io.Closer, error) {
+func NewJaegerTracer(service string, agentEndpoint string) (opentracing.Tracer, io.Closer, error) {
 	cfg := config.Configuration{
 		ServiceName: service,
 		Sampler: &config.SamplerConfig{
@@ -32,8 +47,8 @@ func NewJaegerTracer(service string, endpoint string) (opentracing.Tracer, io.Cl
 			Param: 1,
 		},
 		Reporter: &config.ReporterConfig{
-			LogSpans:          true,
-			CollectorEndpoint: endpoint,
+			LogSpans:           true,
+			LocalAgentHostPort: agentEndpoint,
 		},
 	}
 
@@ -56,14 +71,14 @@ func serverInterceptor(tracer opentracing.Tracer, log *zap.Logger) grpc.UnarySer
 			md = metadata.Pairs()
 		}
 
-		spanContext, err := tracer.Extract(opentracing.TextMap, MDReaderWriter{md})
+		spanContext, err := tracer.Extract(opentracing.TextMap, MDCarrier{md})
 		if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
 			log.Error("extract from metadata err", zap.Error(err))
 		} else {
 			span := tracer.StartSpan(
 				info.FullMethod,
 				ext.RPCServerOption(spanContext),
-				//opentracing.Tag{Key: string(ext.Component), Value: "gRPC"},
+				opentracing.Tag{Key: string(ext.Component), Value: "gRPC server"},
 				ext.SpanKindRPCServer,
 			)
 			defer span.Finish()
@@ -81,7 +96,7 @@ func ClientInterceptor(_ context.Context, tracer opentracing.Tracer) grpc.UnaryC
 		span, _ := opentracing.StartSpanFromContext(
 			ctx,
 			"call gRPC",
-			opentracing.Tag{Key: string(ext.Component), Value: "gRPC"},
+			opentracing.Tag{Key: string(ext.Component), Value: "gRPC client"},
 			ext.SpanKindRPCClient,
 		)
 		defer span.Finish()
@@ -93,8 +108,8 @@ func ClientInterceptor(_ context.Context, tracer opentracing.Tracer) grpc.UnaryC
 			md = md.Copy()
 		}
 
-		mdWriter := MDReaderWriter{md}
-		err := tracer.Inject(span.Context(), opentracing.TextMap, mdWriter)
+		mdCarrier := MDCarrier{md}
+		err := tracer.Inject(span.Context(), opentracing.TextMap, mdCarrier)
 		if err != nil {
 			tracelog.String("inject error", err.Error())
 			return err

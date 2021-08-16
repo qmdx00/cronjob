@@ -2,41 +2,44 @@ package server
 
 import (
 	"context"
-	"github.com/qmdx00/crobjob/internal/task/constant"
+	"github.com/gin-gonic/gin"
+	"github.com/qmdx00/crobjob/internal/manager/constant"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
 	"github.com/qmdx00/crobjob/pkg/transport"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"net"
+	"net/http"
 )
 
 type Server struct {
-	log  *zap.Logger
-	server *grpc.Server
+	log    *zap.Logger
+	server *http.Server
 }
 
-func NewServer(log *zap.Logger, server *grpc.Server) transport.Server {
-	return &Server{log: log, server: server}
+func NewHttpServer(log *zap.Logger, engine *gin.Engine) transport.Server {
+	return &Server{
+		server: &http.Server{
+			Handler: engine,
+			//Addr: "", // TODO
+		},
+		log: log,
+	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
 	defer s.log.Sync()
 	info, _ := lifecycle.FromContext(ctx)
 
-	lis, err := net.Listen("tcp", info.Metadata()[constant.GRPCAddr])
-	if err != nil {
-		s.log.Fatal("failed to listen", zap.Error(err))
-	}
-
 	s.log.Info("server start",
 		zap.String("id", info.ID()),
 		zap.String("name", info.Name()),
 		zap.String("version", info.Version()),
-		zap.String("addr", info.Metadata()[constant.GRPCAddr]),
+		zap.String("addr", info.Metadata()[constant.HTTPAddr]),
 	)
 
-	return s.server.Serve(lis)
+	// HACK:
+	s.server.Addr = info.Metadata()[constant.HTTPAddr]
 
+	return s.server.ListenAndServe()
 }
 
 func (s *Server) Stop(ctx context.Context) error {
@@ -47,9 +50,8 @@ func (s *Server) Stop(ctx context.Context) error {
 		zap.String("id", info.ID()),
 		zap.String("name", info.Name()),
 		zap.String("version", info.Version()),
-		zap.String("addr", info.Metadata()[constant.GRPCAddr]),
+		zap.String("addr", info.Metadata()[constant.HTTPAddr]),
 	)
 
-	s.server.GracefulStop()
-	return nil
+	return s.server.Shutdown(ctx)
 }

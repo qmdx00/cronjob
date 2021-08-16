@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-var ProviderSet = wire.NewSet(NewServer, NewGRPC)
+var ProviderSet = wire.NewSet(NewServer, NewGRPCServer)
 
-func NewGRPC(task *biz.TaskBusiness, log *zap.Logger) (*grpc.Server, error) {
+func NewGRPCServer(task *biz.TaskBusiness, log *zap.Logger) (*grpc.Server, error) {
 	// HACK: to be replaced by config
-	tracer, closer, err := transport.NewJaegerTracer("cronjob_task", "http://127.0.0.1:14268/api/traces")
+	tracer, closer, err := transport.NewJaegerTracer("cronjob_task", "127.0.0.1:6831")
 	if err != nil {
 		return nil, err
 	}
