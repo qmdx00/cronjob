@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	tracelog "github.com/opentracing/opentracing-go/log"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"
@@ -75,7 +76,7 @@ func serverInterceptor(tracer opentracing.Tracer, log *zap.Logger) grpc.UnarySer
 }
 
 // ClientInterceptor for grpc client ...
-func ClientInterceptor(ctx context.Context, log *zap.Logger, tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
+func ClientInterceptor(_ context.Context, tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		span, _ := opentracing.StartSpanFromContext(
 			ctx,
@@ -95,14 +96,14 @@ func ClientInterceptor(ctx context.Context, log *zap.Logger, tracer opentracing.
 		mdWriter := MDReaderWriter{md}
 		err := tracer.Inject(span.Context(), opentracing.TextMap, mdWriter)
 		if err != nil {
-			log.Error("inject error", zap.Error(err))
+			tracelog.String("inject error", err.Error())
 			return err
 		}
 
 		newCtx := metadata.NewOutgoingContext(ctx, md)
 		err = invoker(newCtx, method, req, reply, cc, opts...)
 		if err != nil {
-			log.Error("call error", zap.Error(err))
+			tracelog.String("call error", err.Error())
 			return err
 		}
 		return nil
