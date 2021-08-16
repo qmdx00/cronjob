@@ -73,3 +73,38 @@ func serverInterceptor(tracer opentracing.Tracer, log *zap.Logger) grpc.UnarySer
 		return handler(parentContext, req)
 	}
 }
+
+// ClientInterceptor for grpc client ...
+func ClientInterceptor(ctx context.Context, log *zap.Logger, tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		span, _ := opentracing.StartSpanFromContext(
+			ctx,
+			"call gRPC",
+			opentracing.Tag{Key: string(ext.Component), Value: "gRPC"},
+			ext.SpanKindRPCClient,
+		)
+		defer span.Finish()
+
+		md, ok := metadata.FromOutgoingContext(ctx)
+		if !ok {
+			md = metadata.Pairs()
+		} else {
+			md = md.Copy()
+		}
+
+		mdWriter := MDReaderWriter{md}
+		err := tracer.Inject(span.Context(), opentracing.TextMap, mdWriter)
+		if err != nil {
+			log.Error("inject error", zap.Error(err))
+			return err
+		}
+
+		newCtx := metadata.NewOutgoingContext(ctx, md)
+		err = invoker(newCtx, method, req, reply, cc, opts...)
+		if err != nil {
+			log.Error("call error", zap.Error(err))
+			return err
+		}
+		return nil
+	}
+}
