@@ -10,8 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// ProviderSet for server ...
 var ProviderSet = wire.NewSet(NewHttpServer, NewHTTPRouter)
 
+// NewHTTPRouter ...
 func NewHTTPRouter(log *zap.Logger, task *biz.TaskBusiness, tracer opentracing.Tracer) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 

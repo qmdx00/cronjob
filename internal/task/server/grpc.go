@@ -10,15 +10,18 @@ import (
 	"net"
 )
 
+// Server grpc server ...
 type Server struct {
-	log  *zap.Logger
+	log    *zap.Logger
 	server *grpc.Server
 }
 
+// NewServer ...
 func NewServer(log *zap.Logger, server *grpc.Server) transport.Server {
 	return &Server{log: log, server: server}
 }
 
+// Start server ...
 func (s *Server) Start(ctx context.Context) error {
 	defer s.log.Sync()
 	info, _ := lifecycle.FromContext(ctx)
@@ -39,6 +42,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 }
 
+// Stop server ...
 func (s *Server) Stop(ctx context.Context) error {
 	defer s.log.Sync()
 	info, _ := lifecycle.FromContext(ctx)

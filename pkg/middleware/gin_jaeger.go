@@ -7,6 +7,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 )
 
+// Opentracing middleware for gin request ...
 func Opentracing(tracer opentracing.Tracer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		span := tracer.StartSpan(
@@ -15,6 +16,7 @@ func Opentracing(tracer opentracing.Tracer) gin.HandlerFunc {
 		)
 		defer span.Finish()
 
+		// store context.Context to gin.Context
 		ctx.Set("context", opentracing.ContextWithSpan(context.Background(), span))
 
 		ctx.Next()

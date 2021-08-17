@@ -9,16 +9,19 @@ import (
 	"net/http"
 )
 
+// NewTaskBusiness ...
 func NewTaskBusiness(log *zap.Logger, client rpc.TaskServiceClient, tracer opentracing.Tracer) *TaskBusiness {
 	return &TaskBusiness{client: client, log: log, tracer: tracer}
 }
 
+// TaskBusiness ...
 type TaskBusiness struct {
 	client rpc.TaskServiceClient
 	tracer opentracing.Tracer
 	log    *zap.Logger
 }
 
+// CreateTask ...
 func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 	spanCtx, _ := ctx.Get("context")
 	task, err := b.client.CreateTask(spanCtx.(context.Context), &rpc.Task_CreateTask{Data: &rpc.Task_Model{

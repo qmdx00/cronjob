@@ -10,11 +10,13 @@ import (
 	"net/http"
 )
 
+// Server http server ...
 type Server struct {
 	log    *zap.Logger
 	server *http.Server
 }
 
+// NewHttpServer ...
 func NewHttpServer(log *zap.Logger, engine *gin.Engine) transport.Server {
 	return &Server{
 		server: &http.Server{
@@ -25,6 +27,7 @@ func NewHttpServer(log *zap.Logger, engine *gin.Engine) transport.Server {
 	}
 }
 
+// Start server ...
 func (s *Server) Start(ctx context.Context) error {
 	defer s.log.Sync()
 	info, _ := lifecycle.FromContext(ctx)
@@ -42,6 +45,7 @@ func (s *Server) Start(ctx context.Context) error {
 	return s.server.ListenAndServe()
 }
 
+// Stop server ...
 func (s *Server) Stop(ctx context.Context) error {
 	defer s.log.Sync()
 	info, _ := lifecycle.FromContext(ctx)

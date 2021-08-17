@@ -8,8 +8,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+// ProviderSet for server ...
 var ProviderSet = wire.NewSet(NewServer, NewGRPCServer)
 
+// NewGRPCServer ...
 func NewGRPCServer(task *biz.TaskBusiness) (*grpc.Server, func(), error) {
 	// HACK: to be replaced by config
 	tracer, closer, err := middleware.NewJaegerTracer("cronjob_task", "127.0.0.1:6831")

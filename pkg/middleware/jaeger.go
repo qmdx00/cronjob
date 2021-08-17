@@ -8,14 +8,17 @@ import (
 	"io"
 )
 
+// MDCarrier ...
 type MDCarrier struct {
 	metadata.MD
 }
 
+// Set implement opentracing.TextMapWriter ...
 func (m MDCarrier) Set(key, val string) {
 	m.MD[key] = append(m.MD[key], val)
 }
 
+// ForeachKey implement opentracing.TextMapReader ...
 func (m MDCarrier) ForeachKey(handler func(key, val string) error) error {
 	for k, strs := range m.MD {
 		for _, v := range strs {

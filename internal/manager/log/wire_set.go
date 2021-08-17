@@ -9,6 +9,7 @@ import (
 // ProviderSet ...
 var ProviderSet = wire.NewSet(NewManagerLogger)
 
+// NewManagerLogger ...
 func NewManagerLogger() *zap.Logger {
 	return log.NewLogger("manager-service")
 }
