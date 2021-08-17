@@ -24,7 +24,10 @@ func NewHTTPRouter(log *zap.Logger, task *biz.TaskBusiness, tracer opentracing.T
 	engine.Use(middleware.RecoveryWithZap(log, true))
 	engine.Use(middleware.Opentracing(tracer))
 
-	// set router
+	// set promethues router
+	router.RegisterPrometheus(engine)
+
+	// set http routers
 	mng := engine.Group("/v1/mng")
 	router.RegisterTaskRouter(mng, task)
 
