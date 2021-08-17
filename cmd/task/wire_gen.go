@@ -17,12 +17,13 @@ import (
 func initApp() (*lifecycle.App, func(), error) {
 	logger := log.NewTaskLogger()
 	taskBusiness := biz.NewTaskBusiness(logger)
-	grpcServer, err := server.NewGRPCServer(taskBusiness)
+	grpcServer, cleanup, err := server.NewGRPCServer(taskBusiness)
 	if err != nil {
 		return nil, nil, err
 	}
 	transportServer := server.NewServer(logger, grpcServer)
 	app := newApp(transportServer)
 	return app, func() {
+		cleanup()
 	}, nil
 }

@@ -16,15 +16,22 @@ import (
 
 func initApp() (*lifecycle.App, func(), error) {
 	logger := log.NewManagerLogger()
-	clientConn, err := biz.NewGRPCConn()
+	tracer, cleanup, err := biz.NewTracer()
 	if err != nil {
 		return nil, nil, err
 	}
+	clientConn, cleanup2, err := biz.NewGRPCConn(tracer)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	taskServiceClient := biz.NewTaskServiceClient(clientConn)
-	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient)
-	engine := server.NewHTTPRouter(logger, taskBusiness)
+	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient, tracer)
+	engine := server.NewHTTPRouter(logger, taskBusiness, tracer)
 	transportServer := server.NewHttpServer(logger, engine)
 	app := newApp(transportServer)
 	return app, func() {
+		cleanup2()
+		cleanup()
 	}, nil
 }

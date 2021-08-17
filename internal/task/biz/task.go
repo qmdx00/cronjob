@@ -21,8 +21,11 @@ func (t TaskBusiness) GetListByType(ctx context.Context, req *rpc.Task_GetListBy
 }
 
 func (t TaskBusiness) CreateTask(ctx context.Context, req *rpc.Task_CreateTask) (*rpc.Task_Model, error) {
+	// TODO set orm span
 	//span := opentracing.SpanFromContext(ctx)
 	//defer span.Finish()
+	//
+	//time.Sleep(time.Second)
 
 	return req.Data, nil
 }

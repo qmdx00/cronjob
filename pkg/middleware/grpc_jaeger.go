@@ -1,36 +1,15 @@
-package transport
+package middleware
 
 import (
 	"context"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracelog "github.com/opentracing/opentracing-go/log"
-	"github.com/uber/jaeger-client-go"
-	"github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
-	"io"
 )
 
-type MDCarrier struct {
-	metadata.MD
-}
-
-func (m MDCarrier) Set(key, val string) {
-	m.MD[key] = append(m.MD[key], val)
-}
-
-func (m MDCarrier) ForeachKey(handler func(key, val string) error) error {
-	for k, strs := range m.MD {
-		for _, v := range strs {
-			if err := handler(k, v); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
 
 // JaegerServerOption ...
 func JaegerServerOption(tracer opentracing.Tracer) grpc.ServerOption {
@@ -40,29 +19,6 @@ func JaegerServerOption(tracer opentracing.Tracer) grpc.ServerOption {
 // JaegerClientOption ...
 func JaegerClientOption(tracer opentracing.Tracer) grpc.DialOption {
 	return grpc.WithUnaryInterceptor(clientInterceptor(tracer))
-}
-
-// NewJaegerTracer ...
-func NewJaegerTracer(service string, agentEndpoint string) (opentracing.Tracer, io.Closer, error) {
-	cfg := config.Configuration{
-		ServiceName: service,
-		Sampler: &config.SamplerConfig{
-			Type:  jaeger.SamplerTypeConst,
-			Param: 1,
-		},
-		Reporter: &config.ReporterConfig{
-			LogSpans:           true,
-			LocalAgentHostPort: agentEndpoint,
-		},
-	}
-
-	tracer, closer, err := cfg.NewTracer(config.Logger(jaeger.StdLogger))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	opentracing.SetGlobalTracer(tracer)
-	return tracer, closer, nil
 }
 
 // serverInterceptor for grpc server ...
@@ -92,7 +48,6 @@ func serverInterceptor(tracer opentracing.Tracer) grpc.UnaryServerInterceptor {
 		}
 
 		return handler(ctx, req)
-
 	}
 }
 
@@ -101,10 +56,12 @@ func clientInterceptor(tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		var err error
 		var parentCtx opentracing.SpanContext
+
 		parentSpan := opentracing.SpanFromContext(ctx)
 		if parentSpan != nil {
 			parentCtx = parentSpan.Context()
 		}
+
 		span := tracer.StartSpan(
 			method,
 			opentracing.ChildOf(parentCtx),

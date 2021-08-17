@@ -3,22 +3,25 @@ package biz
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/opentracing/opentracing-go"
 	"github.com/qmdx00/crobjob/rpc"
 	"go.uber.org/zap"
 	"net/http"
 )
 
-func NewTaskBusiness(log *zap.Logger, client rpc.TaskServiceClient) *TaskBusiness {
-	return &TaskBusiness{client: client, log: log}
+func NewTaskBusiness(log *zap.Logger, client rpc.TaskServiceClient, tracer opentracing.Tracer) *TaskBusiness {
+	return &TaskBusiness{client: client, log: log, tracer: tracer}
 }
 
 type TaskBusiness struct {
 	client rpc.TaskServiceClient
+	tracer opentracing.Tracer
 	log    *zap.Logger
 }
 
 func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
-	task, err := b.client.CreateTask(context.Background(), &rpc.Task_CreateTask{Data: &rpc.Task_Model{
+	spanCtx, _ := ctx.Get("context")
+	task, err := b.client.CreateTask(spanCtx.(context.Context), &rpc.Task_CreateTask{Data: &rpc.Task_Model{
 		Id:          0,
 		Name:        "aaa",
 		TaskType:    "aaa",
