@@ -17,7 +17,7 @@ import (
 func initApp() (*lifecycle.App, func(), error) {
 	logger := log.NewTaskLogger()
 	taskBusiness := biz.NewTaskBusiness(logger)
-	grpcServer, err := server.NewGRPC(taskBusiness, logger)
+	grpcServer, err := server.NewGRPCServer(taskBusiness)
 	if err != nil {
 		return nil, nil, err
 	}

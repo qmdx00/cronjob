@@ -6,5 +6,5 @@ import (
 )
 
 func RegisterTaskRouter(group *gin.RouterGroup, task *biz.TaskBusiness) {
-	group.GET("/tasks", task.GetList)
+	group.GET("/tasks", task.CreateTask)
 }

@@ -2,14 +2,13 @@ package transport
 
 import (
 	"context"
-	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracelog "github.com/opentracing/opentracing-go/log"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"io"
 )
@@ -33,9 +32,14 @@ func (m MDCarrier) ForeachKey(handler func(key, val string) error) error {
 	return nil
 }
 
-// JaegerOption ...
-func JaegerOption(tracer opentracing.Tracer, log *zap.Logger) grpc.ServerOption {
-	return grpc.UnaryInterceptor(serverInterceptor(tracer, log))
+// JaegerServerOption ...
+func JaegerServerOption(tracer opentracing.Tracer) grpc.ServerOption {
+	return grpc.UnaryInterceptor(serverInterceptor(tracer))
+}
+
+// JaegerClientOption ...
+func JaegerClientOption(tracer opentracing.Tracer) grpc.DialOption {
+	return grpc.WithUnaryInterceptor(clientInterceptor(tracer))
 }
 
 // NewJaegerTracer ...
@@ -61,42 +65,50 @@ func NewJaegerTracer(service string, agentEndpoint string) (opentracing.Tracer, 
 	return tracer, closer, nil
 }
 
-// serverInterceptor ...
-func serverInterceptor(tracer opentracing.Tracer, log *zap.Logger) grpc.UnaryServerInterceptor {
+// serverInterceptor for grpc server ...
+func serverInterceptor(tracer opentracing.Tracer) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var parentContext context.Context
-
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			md = metadata.Pairs()
 		}
+		spanContext, err := tracer.Extract(
+			opentracing.TextMap,
+			MDCarrier{md},
+		)
 
-		spanContext, err := tracer.Extract(opentracing.TextMap, MDCarrier{md})
-		if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
-			log.Error("extract from metadata err", zap.Error(err))
+		if err != nil && err != opentracing.ErrSpanContextNotFound {
+			grpclog.Errorf("extract from metadata err: %v", err)
 		} else {
 			span := tracer.StartSpan(
 				info.FullMethod,
 				ext.RPCServerOption(spanContext),
-				opentracing.Tag{Key: string(ext.Component), Value: "gRPC server"},
+				opentracing.Tag{Key: string(ext.Component), Value: "gRPC Server"},
 				ext.SpanKindRPCServer,
 			)
 			defer span.Finish()
 
-			parentContext = opentracing.ContextWithSpan(ctx, span)
+			ctx = opentracing.ContextWithSpan(ctx, span)
 		}
 
-		return handler(parentContext, req)
+		return handler(ctx, req)
+
 	}
 }
 
-// ClientInterceptor for grpc client ...
-func ClientInterceptor(_ context.Context, tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
+// clientInterceptor for grpc client ...
+func clientInterceptor(tracer opentracing.Tracer) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		span, _ := opentracing.StartSpanFromContext(
-			ctx,
-			"call gRPC",
-			opentracing.Tag{Key: string(ext.Component), Value: "gRPC client"},
+		var err error
+		var parentCtx opentracing.SpanContext
+		parentSpan := opentracing.SpanFromContext(ctx)
+		if parentSpan != nil {
+			parentCtx = parentSpan.Context()
+		}
+		span := tracer.StartSpan(
+			method,
+			opentracing.ChildOf(parentCtx),
+			opentracing.Tag{Key: string(ext.Component), Value: "gRPC Client"},
 			ext.SpanKindRPCClient,
 		)
 		defer span.Finish()
@@ -108,19 +120,19 @@ func ClientInterceptor(_ context.Context, tracer opentracing.Tracer) grpc.UnaryC
 			md = md.Copy()
 		}
 
-		mdCarrier := MDCarrier{md}
-		err := tracer.Inject(span.Context(), opentracing.TextMap, mdCarrier)
-		if err != nil {
+		if err = tracer.Inject(
+			span.Context(),
+			opentracing.TextMap,
+			MDCarrier{md},
+		); err != nil {
 			tracelog.String("inject error", err.Error())
-			return err
 		}
 
 		newCtx := metadata.NewOutgoingContext(ctx, md)
-		err = invoker(newCtx, method, req, reply, cc, opts...)
-		if err != nil {
+		if err = invoker(newCtx, method, req, reply, cc, opts...); err != nil {
 			tracelog.String("call error", err.Error())
-			return err
 		}
-		return nil
+
+		return err
 	}
 }
