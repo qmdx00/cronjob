@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
+	github.com/Shopify/sarama v1.29.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.1.2

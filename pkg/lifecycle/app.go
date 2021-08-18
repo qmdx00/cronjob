@@ -29,8 +29,8 @@ type App struct {
 // New return new App
 func New(opts ...Option) *App {
 	_opts := options{
-		ctx:    context.Background(),
-		sigs:   []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
+		ctx:  context.Background(),
+		sigs: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
 	}
 	if id, err := uuid.NewUUID(); err == nil {
 		_opts.id = id.String()
@@ -66,7 +66,8 @@ func (a *App) Run() error {
 	wg := &sync.WaitGroup{}
 
 	// start servers
-	for _, srv := range a.opts.servers {
+	for _, server := range a.opts.servers {
+		srv := server
 		group.Go(func() error {
 			<-ctx.Done()
 			return srv.Stop(ctx)

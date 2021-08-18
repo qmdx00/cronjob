@@ -1,11 +1,10 @@
 package server
 
 import (
-	"fmt"
 	"github.com/robfig/cron"
 )
 
-// MainCron ...
+// MainCron implement cron.Job ...
 type MainCron struct {
 }
 
@@ -14,7 +13,7 @@ func NewMainCron() cron.Job {
 	return &MainCron{}
 }
 
-// Run implement cron.Job ...
+// Run ...
 func (m *MainCron) Run() {
-	fmt.Println("hello world")
+	// TODO
 }

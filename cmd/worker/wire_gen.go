@@ -14,8 +14,11 @@ import (
 
 func initApp() (*lifecycle.App, func(), error) {
 	job := server.NewMainCron()
-	transportServer := server.NewServer(job)
-	app := newApp(transportServer)
+	v, err := server.NewServers(job)
+	if err != nil {
+		return nil, nil, err
+	}
+	app := newApp(v)
 	return app, func() {
 	}, nil
 }
