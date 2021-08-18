@@ -29,7 +29,7 @@ func NewTaskConsumer() (transport.Server, error) {
 
 func (t *TaskConsumer) Start(ctx context.Context) error {
 	// HACK:
-	part, err := t.consumer.ConsumePartition("test", 0, sarama.OffsetOldest)
+	part, err := t.consumer.ConsumePartition("test", 0, sarama.OffsetNewest)
 	if err != nil {
 		return err
 	}
