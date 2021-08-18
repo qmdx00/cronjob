@@ -26,10 +26,9 @@ func NewProducer() (*TaskProducer, error) {
 	return &TaskProducer{producer: producer}, nil
 }
 
-func (t *TaskProducer) Send(key, value string) (int32, int64, error) {
+func (t *TaskProducer) Send(topic, key, value string) (int32, int64, error) {
 	return t.producer.SendMessage(&sarama.ProducerMessage{
-		// HACK:
-		Topic: "test",
+		Topic: topic,
 		Key:   sarama.StringEncoder(key),
 		Value: sarama.StringEncoder(value),
 	})

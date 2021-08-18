@@ -39,7 +39,7 @@ func (t *TaskConsumer) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case msg := <-part.Messages():
-			// TODO
+			// TODO 抽象消费方法
 			fmt.Println(string(msg.Key), string(msg.Value))
 		}
 	}

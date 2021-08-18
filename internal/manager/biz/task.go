@@ -38,8 +38,14 @@ func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 		UpdatedAt:   "",
 	}
 
-	_, _, err := b.task.Send(model.Name, model.String())
+	// send message to kafka
+	_, _, err := b.task.Send("test", model.Name, model.String())
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
 
+	// call rpc create task
 	task, err := b.client.CreateTask(spanCtx.(context.Context), &rpc.Task_CreateTask{Data: model})
 	if err != nil {
 		ctx.Error(err)
