@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/qmdx00/crobjob/internal/manager/biz"
+	"github.com/qmdx00/crobjob/internal/manager/config"
 	"github.com/qmdx00/crobjob/internal/manager/log"
 	"github.com/qmdx00/crobjob/internal/manager/producer"
 	"github.com/qmdx00/crobjob/internal/manager/server"
@@ -12,5 +13,5 @@ import (
 )
 
 func initApp() (*lifecycle.App, func(), error) {
-	panic(wire.Build(server.ProviderSet, biz.ProviderSet, producer.ProviderSet, log.ProviderSet, newApp))
+	panic(wire.Build(server.ProviderSet, biz.ProviderSet, producer.ProviderSet, config.ProviderSet, log.ProviderSet, newApp))
 }

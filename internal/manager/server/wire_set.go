@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/opentracing/opentracing-go"
@@ -20,6 +21,7 @@ func NewHTTPRouter(log *zap.Logger, task *biz.TaskBusiness, tracer opentracing.T
 	engine := gin.New()
 
 	// use middlewares
+	engine.Use(cors.Default())
 	engine.Use(middleware.Ginzap(log))
 	engine.Use(middleware.RecoveryWithZap(log, true))
 	engine.Use(middleware.Opentracing(tracer))

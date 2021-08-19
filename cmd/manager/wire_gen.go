@@ -7,6 +7,7 @@ package main
 
 import (
 	"github.com/qmdx00/crobjob/internal/manager/biz"
+	"github.com/qmdx00/crobjob/internal/manager/config"
 	"github.com/qmdx00/crobjob/internal/manager/log"
 	"github.com/qmdx00/crobjob/internal/manager/producer"
 	"github.com/qmdx00/crobjob/internal/manager/server"
@@ -16,18 +17,19 @@ import (
 // Injectors from wire.go:
 
 func initApp() (*lifecycle.App, func(), error) {
-	logger := log.NewManagerLogger()
-	tracer, cleanup, err := biz.NewTracer()
+	managerConfig := config.NewManagerConfig()
+	logger := log.NewManagerLogger(managerConfig)
+	tracer, cleanup, err := biz.NewTracer(managerConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	clientConn, cleanup2, err := biz.NewGRPCConn(tracer)
+	clientConn, cleanup2, err := biz.NewGRPCConn(tracer, managerConfig)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
 	taskServiceClient := biz.NewTaskServiceClient(clientConn)
-	taskProducer, err := producer.NewProducer()
+	taskProducer, cleanup3, err := producer.NewProducer(managerConfig)
 	if err != nil {
 		cleanup2()
 		cleanup()
@@ -35,9 +37,10 @@ func initApp() (*lifecycle.App, func(), error) {
 	}
 	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient, tracer, taskProducer)
 	engine := server.NewHTTPRouter(logger, taskBusiness, tracer)
-	transportServer := server.NewHttpServer(logger, engine)
+	transportServer := server.NewHttpServer(logger, engine, managerConfig)
 	app := newApp(transportServer)
 	return app, func() {
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

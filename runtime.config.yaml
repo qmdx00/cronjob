@@ -1,0 +1,36 @@
+manager:
+  server:
+    http:
+      addr: "127.0.0.1:1111"
+  log:
+    prefix: "manager-service"
+
+task:
+  server:
+    grpc:
+      addr: "127.0.0.1:1112"
+  log:
+    prefix: "task-service"
+
+worker:
+  cron:
+    spec: "0/1 * * * * ?"
+  log:
+    prefix: "worker-service"
+
+
+resource:
+  kafka:
+    brokers:
+      - "127.0.0.1:9092"
+    retry:
+      max: 5
+
+  prometheus:
+
+  mysql:
+
+  redis:
+
+  jaeger:
+    agent: "127.0.0.1:6831"

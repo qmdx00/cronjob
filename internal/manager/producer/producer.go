@@ -2,28 +2,30 @@ package producer
 
 import (
 	"github.com/Shopify/sarama"
+	"github.com/qmdx00/crobjob/internal/manager/config"
 )
 
 type TaskProducer struct {
 	producer sarama.SyncProducer
 }
 
-func NewProducer() (*TaskProducer, error) {
-	// HACK:
-	brokers := []string{"127.0.0.1:9092"}
+func NewProducer(config *config.ManagerConfig) (*TaskProducer, func(), error) {
+	brokers := config.Viper.GetStringSlice("resource.kafka.brokers")
 
-	config := sarama.NewConfig()
-	config.Producer.Retry.Max = 5
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Return.Successes = true
-	config.Producer.Return.Errors = true
+	kafka := sarama.NewConfig()
+	kafka.Producer.Retry.Max = config.Viper.GetInt("resource.kafka.retry.max")
+	kafka.Producer.RequiredAcks = sarama.WaitForAll
+	kafka.Producer.Return.Successes = true
+	kafka.Producer.Return.Errors = true
 
-	producer, err := sarama.NewSyncProducer(brokers, config)
+	producer, err := sarama.NewSyncProducer(brokers, kafka)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &TaskProducer{producer: producer}, nil
+	return &TaskProducer{producer: producer}, func() {
+		producer.Close()
+	}, nil
 }
 
 func (t *TaskProducer) Send(topic, key, value string) (int32, int64, error) {

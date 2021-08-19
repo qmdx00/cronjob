@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"github.com/qmdx00/crobjob/internal/worker/config"
 	"github.com/qmdx00/crobjob/pkg/transport"
 )
 
@@ -11,15 +12,14 @@ type TaskConsumer struct {
 	consumer sarama.Consumer
 }
 
-func NewTaskConsumer() (transport.Server, error) {
-	// HACK:
-	brokers := []string{"127.0.0.1:9092"}
+func NewTaskConsumer(config *config.WorkerConfig) (transport.Server, error) {
+	brokers := config.Viper.GetStringSlice("resource.kafka.brokers")
 
-	config := sarama.NewConfig()
-	config.Producer.Retry.Max = 5
-	config.Producer.RequiredAcks = sarama.WaitForAll
+	kafka := sarama.NewConfig()
+	kafka.Producer.Retry.Max = 5
+	kafka.Producer.RequiredAcks = sarama.WaitForAll
 
-	consumer, err := sarama.NewConsumer(brokers, config)
+	consumer, err := sarama.NewConsumer(brokers, kafka)
 	if err != nil {
 		return nil, err
 	}

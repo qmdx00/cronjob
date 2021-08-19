@@ -6,6 +6,8 @@
 package main
 
 import (
+	"github.com/qmdx00/crobjob/internal/worker/config"
+	"github.com/qmdx00/crobjob/internal/worker/log"
 	"github.com/qmdx00/crobjob/internal/worker/server"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
 )
@@ -13,8 +15,10 @@ import (
 // Injectors from wire.go:
 
 func initApp() (*lifecycle.App, func(), error) {
-	job := server.NewMainCron()
-	v, err := server.NewServers(job)
+	workerConfig := config.NewWorkerConfig()
+	logger := log.NewWorkerLogger(workerConfig)
+	job := server.NewMainCron(logger)
+	v, err := server.NewServers(job, workerConfig)
 	if err != nil {
 		return nil, nil, err
 	}

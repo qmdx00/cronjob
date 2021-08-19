@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/google/wire"
 	"github.com/qmdx00/crobjob/internal/task/biz"
+	"github.com/qmdx00/crobjob/internal/task/config"
 	"github.com/qmdx00/crobjob/pkg/middleware"
 	"github.com/qmdx00/crobjob/rpc"
 	"google.golang.org/grpc"
@@ -12,9 +13,11 @@ import (
 var ProviderSet = wire.NewSet(NewServer, NewGRPCServer)
 
 // NewGRPCServer ...
-func NewGRPCServer(task *biz.TaskBusiness) (*grpc.Server, func(), error) {
-	// HACK: to be replaced by config
-	tracer, closer, err := middleware.NewJaegerTracer("cronjob_task", "127.0.0.1:6831")
+func NewGRPCServer(task *biz.TaskBusiness, config *config.TaskConfig) (*grpc.Server, func(), error) {
+	serviceName := config.Viper.GetString("task.log.prefix")
+	agent := config.Viper.GetString("resource.jaeger.agent")
+
+	tracer, closer, err := middleware.NewJaegerTracer(serviceName, agent)
 	if err != nil {
 		return nil, nil, err
 	}
