@@ -22,7 +22,6 @@ func NewServer(job cron.Job, config *config.WorkerConfig) transport.Server {
 // Start ...
 func (s *Server) Start(ctx context.Context) error {
 	spec := s.config.Viper.GetString("worker.cron.spec")
-
 	schedule, err := cron.Parse(spec)
 	if err != nil {
 		return err

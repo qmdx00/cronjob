@@ -4,15 +4,14 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
-	"github.com/qmdx00/crobjob/internal/manager/producer"
 	"github.com/qmdx00/crobjob/rpc"
 	"go.uber.org/zap"
 	"net/http"
 )
 
 // NewTaskBusiness ...
-func NewTaskBusiness(log *zap.Logger, client rpc.TaskServiceClient, tracer opentracing.Tracer, task *producer.TaskProducer) *TaskBusiness {
-	return &TaskBusiness{client: client, log: log, tracer: tracer, task: task}
+func NewTaskBusiness(log *zap.Logger, client rpc.TaskServiceClient, tracer opentracing.Tracer) *TaskBusiness {
+	return &TaskBusiness{client: client, log: log, tracer: tracer}
 }
 
 // TaskBusiness ...
@@ -20,7 +19,6 @@ type TaskBusiness struct {
 	client rpc.TaskServiceClient
 	tracer opentracing.Tracer
 	log    *zap.Logger
-	task   *producer.TaskProducer
 }
 
 // CreateTask ...
@@ -36,13 +34,6 @@ func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 		Description: "aaa",
 		CreatedAt:   "",
 		UpdatedAt:   "",
-	}
-
-	// send message to kafka
-	_, _, err := b.task.Send("test", model.Name, model.String())
-	if err != nil {
-		ctx.Error(err)
-		return
 	}
 
 	// call rpc create task

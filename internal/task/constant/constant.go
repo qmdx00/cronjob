@@ -1,5 +1,5 @@
 package constant
 
 const (
-	GRPCAddr = "grpc_addr"
+	TaskTopic = "cron-task"
 )

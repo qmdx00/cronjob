@@ -6,6 +6,7 @@ import (
 	"github.com/qmdx00/crobjob/internal/worker/consumer"
 	"github.com/qmdx00/crobjob/pkg/transport"
 	"github.com/robfig/cron"
+	"go.uber.org/zap"
 )
 
 // ProviderSet for cron job ...
@@ -14,7 +15,7 @@ var ProviderSet = wire.NewSet(
 	NewServers,
 )
 
-func NewServers(job cron.Job, config *config.WorkerConfig) ([]transport.Server, error) {
+func NewServers(job cron.Job, config *config.WorkerConfig, log *zap.Logger) ([]transport.Server, error) {
 	servers := make([]transport.Server, 0)
 
 	// add cron task server
@@ -22,7 +23,7 @@ func NewServers(job cron.Job, config *config.WorkerConfig) ([]transport.Server, 
 	servers = append(servers, cronServer)
 
 	// add kafka consumer client
-	taskServer, err := consumer.NewTaskConsumer(config)
+	taskServer, err := consumer.NewTaskConsumer(config, log)
 	if err != nil {
 		return nil, err
 	}

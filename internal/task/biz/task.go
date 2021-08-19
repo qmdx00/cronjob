@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/qmdx00/crobjob/internal/task/producer"
 	"github.com/qmdx00/crobjob/rpc"
 	"go.uber.org/zap"
 )
@@ -9,13 +10,14 @@ import (
 var _ rpc.TaskServiceServer = (*TaskBusiness)(nil)
 
 // NewTaskBusiness ...
-func NewTaskBusiness(log *zap.Logger) *TaskBusiness {
-	return &TaskBusiness{log: log}
+func NewTaskBusiness(log *zap.Logger, producer *producer.TaskProducer) *TaskBusiness {
+	return &TaskBusiness{log: log, producer: producer}
 }
 
 // TaskBusiness ...
 type TaskBusiness struct {
-	log *zap.Logger
+	producer *producer.TaskProducer
+	log      *zap.Logger
 }
 
 // GetListByType ...
@@ -25,11 +27,6 @@ func (t TaskBusiness) GetListByType(ctx context.Context, req *rpc.Task_GetListBy
 
 // CreateTask ...
 func (t TaskBusiness) CreateTask(ctx context.Context, req *rpc.Task_CreateTask) (*rpc.Task_Model, error) {
-	// TODO set orm span
-	//span := opentracing.SpanFromContext(ctx)
-	//defer span.Finish()
-	//
-	//time.Sleep(time.Second)
-
+	t.producer.Send(ctx, "hello", "world")
 	return req.Data, nil
 }

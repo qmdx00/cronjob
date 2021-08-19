@@ -18,7 +18,7 @@ func initApp() (*lifecycle.App, func(), error) {
 	workerConfig := config.NewWorkerConfig()
 	logger := log.NewWorkerLogger(workerConfig)
 	job := server.NewMainCron(logger)
-	v, err := server.NewServers(job, workerConfig)
+	v, err := server.NewServers(job, workerConfig, logger)
 	if err != nil {
 		return nil, nil, err
 	}

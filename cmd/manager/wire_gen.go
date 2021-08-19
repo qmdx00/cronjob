@@ -9,7 +9,6 @@ import (
 	"github.com/qmdx00/crobjob/internal/manager/biz"
 	"github.com/qmdx00/crobjob/internal/manager/config"
 	"github.com/qmdx00/crobjob/internal/manager/log"
-	"github.com/qmdx00/crobjob/internal/manager/producer"
 	"github.com/qmdx00/crobjob/internal/manager/server"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
 )
@@ -29,18 +28,11 @@ func initApp() (*lifecycle.App, func(), error) {
 		return nil, nil, err
 	}
 	taskServiceClient := biz.NewTaskServiceClient(clientConn)
-	taskProducer, cleanup3, err := producer.NewProducer(managerConfig)
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
-	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient, tracer, taskProducer)
+	taskBusiness := biz.NewTaskBusiness(logger, taskServiceClient, tracer)
 	engine := server.NewHTTPRouter(logger, taskBusiness, tracer)
 	transportServer := server.NewHttpServer(logger, engine, managerConfig)
 	app := newApp(transportServer)
 	return app, func() {
-		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil
