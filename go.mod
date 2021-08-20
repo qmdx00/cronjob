@@ -12,6 +12,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.1.2
 	github.com/google/wire v0.5.0
+	github.com/hoisie/mustache v0.0.0-20160804235033-6375acf62c69
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron v1.2.0

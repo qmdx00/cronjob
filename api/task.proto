@@ -5,29 +5,51 @@ message Task {
     message Model {
         int64 id = 1;
         string name = 2;
-        string taskType = 3;
-        string expr = 4;
-        string description = 5;
-        string createdAt = 6;
-        string updatedAt = 7;
+        string key = 3;
+        string taskType = 4;
+        string expr = 5;
+        string description = 6;
+        string extra = 7;
+        string createdAt = 8;
+        string updatedAt = 9;
     }
 
     message List {
         repeated Model list = 1;
     }
 
-    message GetListByType {
-        string taskType = 1;
-        int32 limit = 2;
-        int32 offset = 3;
+    message GetTaskByKey {
+        string key = 1;
+    }
+
+    message GetAllTask {
     }
 
     message CreateTask {
         Model data = 1;
     }
+
+    message StartTask {
+        string key = 1;
+    }
+
+    message StartTaskResp {
+        string message = 1;
+    }
+
+    message StopTask {
+        string key = 1;
+    }
+
+    message StopTaskResp {
+        string message = 1;
+    }
 }
 
 service TaskService {
-    rpc GetListByType(Task.GetListByType) returns (Task.List);
+    rpc GetByTaskId(Task.GetTaskByKey) returns (Task.Model);
+    rpc GetAllTask(Task.GetAllTask) returns (Task.List);
     rpc CreateTask(Task.CreateTask) returns (Task.Model);
+    rpc StartTask(Task.StartTask) returns (Task.StartTaskResp);
+    rpc StopTask(Task.StopTask) returns (Task.StopTaskResp);
 }

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
 	"github.com/qmdx00/crobjob/rpc"
@@ -23,15 +24,48 @@ type TaskBusiness struct {
 
 // CreateTask ...
 func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
-	spanCtx, _ := ctx.Get("context")
-	model := &rpc.Task_Model{
-		Name:        "aaa",
-		TaskType:    "aaa",
-		Description: "aaa",
+	task := &rpc.Task_Model{}
+
+	if err := ctx.BindJSON(task); err != nil {
+		ctx.Error(err)
+		return
 	}
 
-	// call rpc create task
-	task, err := b.client.CreateTask(spanCtx.(context.Context), &rpc.Task_CreateTask{Data: model})
+	spanCtx, _ := ctx.Get("context")
+	created, err := b.client.CreateTask(spanCtx.(context.Context), &rpc.Task_CreateTask{Data: task})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"task": created,
+	})
+}
+
+func (b *TaskBusiness) GetAllTask(ctx *gin.Context) {
+	spanCtx, _ := ctx.Get("context")
+
+	list, err := b.client.GetAllTask(spanCtx.(context.Context), &rpc.Task_GetAllTask{})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"tasks": list,
+	})
+}
+
+func (b *TaskBusiness) GetTaskByKey(ctx *gin.Context) {
+	key := ctx.Param("key")
+	if key == "" {
+		ctx.Error(errors.New("params error"))
+		return
+	}
+
+	spanCtx, _ := ctx.Get("context")
+	task, err := b.client.GetByTaskId(spanCtx.(context.Context), &rpc.Task_GetTaskByKey{Key: key})
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -39,5 +73,43 @@ func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"task": task,
+	})
+}
+
+func (b *TaskBusiness) StartTask(ctx *gin.Context) {
+	key := ctx.Param("key")
+	if key == "" {
+		ctx.Error(errors.New("params error"))
+		return
+	}
+
+	spanCtx, _ := ctx.Get("context")
+	status, err := b.client.StartTask(spanCtx.(context.Context), &rpc.Task_StartTask{Key: key})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": status.Message,
+	})
+}
+
+func (b *TaskBusiness) StopTask(ctx *gin.Context) {
+	key := ctx.Param("key")
+	if key == "" {
+		ctx.Error(errors.New("params error"))
+		return
+	}
+
+	spanCtx, _ := ctx.Get("context")
+	status, err := b.client.StopTask(spanCtx.(context.Context), &rpc.Task_StopTask{Key: key})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"status": status.Message,
 	})
 }

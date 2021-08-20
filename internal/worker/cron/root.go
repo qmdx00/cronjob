@@ -7,12 +7,14 @@ import (
 
 // RootCron implement cron.Job ...
 type RootCron struct {
-	log *zap.Logger
+	log     *zap.Logger
+	cronMap map[string]*cron.Cron
+	keyMap  map[string]string
 }
 
 // NewRootCron ...
 func NewRootCron(log *zap.Logger) cron.Job {
-	return &RootCron{log: log}
+	return &RootCron{log: log, cronMap: make(map[string]*cron.Cron), keyMap: make(map[string]string)}
 }
 
 // Run ...

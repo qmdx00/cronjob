@@ -29,8 +29,16 @@ resource:
   prometheus:
 
   mysql:
+    task:
+      user: "root"
+      password: "123"
+      database: "cronjob"
+      endpoint: "127.0.0.1:3306"
 
   redis:
+    task:
+      prefix: ""
+      endpoint: "127.0.0.1:6379"
 
   jaeger:
     agent: "127.0.0.1:6831"

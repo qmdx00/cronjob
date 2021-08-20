@@ -29,7 +29,7 @@ func initApp() (*lifecycle.App, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	db, err := data.NewGormDB(tracer)
+	db, err := data.NewGormDB(tracer, taskConfig)
 	if err != nil {
 		cleanup2()
 		cleanup()
