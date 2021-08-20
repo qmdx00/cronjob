@@ -6,12 +6,10 @@ message Task {
         int64 id = 1;
         string name = 2;
         string taskType = 3;
-        string taskData = 4;
-        string cronExpr = 5;
-        int64 timeout = 6;
-        string description = 7;
-        string createdAt = 8;
-        string updatedAt = 9;
+        string expr = 4;
+        string description = 5;
+        string createdAt = 6;
+        string updatedAt = 7;
     }
 
     message List {
