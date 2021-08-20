@@ -29,10 +29,9 @@ func NewGRPCConn(tracer opentracing.Tracer, config *config.ManagerConfig) (*grpc
 
 // NewTracer ...
 func NewTracer(config *config.ManagerConfig) (opentracing.Tracer, func(), error) {
-	tracer, closer, err := middleware.NewJaegerTracer(
-		config.Viper.GetString("manager.log.prefix"),
-		config.Viper.GetString("resource.jaeger.agent"),
-	)
+	serviceName := config.Viper.GetString("manager.log.prefix")
+	agent := config.Viper.GetString("resource.jaeger.agent")
+	tracer, closer, err := middleware.NewJaegerTracer(serviceName, agent)
 	if err != nil {
 		return nil, nil, err
 	}

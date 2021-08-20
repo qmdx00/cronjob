@@ -8,6 +8,7 @@ package main
 import (
 	"github.com/qmdx00/crobjob/internal/task/biz"
 	"github.com/qmdx00/crobjob/internal/task/config"
+	"github.com/qmdx00/crobjob/internal/task/data"
 	"github.com/qmdx00/crobjob/internal/task/log"
 	"github.com/qmdx00/crobjob/internal/task/producer"
 	"github.com/qmdx00/crobjob/internal/task/server"
@@ -23,9 +24,22 @@ func initApp() (*lifecycle.App, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	taskBusiness := biz.NewTaskBusiness(logger, taskProducer)
-	grpcServer, cleanup2, err := server.NewGRPCServer(taskBusiness, taskConfig)
+	tracer, cleanup2, err := data.NewTracer(taskConfig)
 	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	db, err := data.NewGormDB(tracer)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	taskRepo := data.NewTask(db)
+	taskBusiness := biz.NewTaskBusiness(logger, taskProducer, taskRepo)
+	grpcServer, err := server.NewGRPCServer(taskBusiness, tracer)
+	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}

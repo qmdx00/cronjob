@@ -25,15 +25,9 @@ type TaskBusiness struct {
 func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 	spanCtx, _ := ctx.Get("context")
 	model := &rpc.Task_Model{
-		Id:          0,
 		Name:        "aaa",
 		TaskType:    "aaa",
-		TaskData:    "aaa",
-		CronExpr:    "",
-		Timeout:     0,
 		Description: "aaa",
-		CreatedAt:   "",
-		UpdatedAt:   "",
 	}
 
 	// call rpc create task

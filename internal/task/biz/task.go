@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/qmdx00/crobjob/internal/task/data"
 	"github.com/qmdx00/crobjob/internal/task/producer"
 	"github.com/qmdx00/crobjob/rpc"
 	"go.uber.org/zap"
@@ -10,14 +11,15 @@ import (
 var _ rpc.TaskServiceServer = (*TaskBusiness)(nil)
 
 // NewTaskBusiness ...
-func NewTaskBusiness(log *zap.Logger, producer *producer.TaskProducer) *TaskBusiness {
-	return &TaskBusiness{log: log, producer: producer}
+func NewTaskBusiness(log *zap.Logger, producer *producer.TaskProducer, task data.TaskRepo) *TaskBusiness {
+	return &TaskBusiness{log: log, producer: producer, task: task}
 }
 
 // TaskBusiness ...
 type TaskBusiness struct {
 	producer *producer.TaskProducer
 	log      *zap.Logger
+	task     data.TaskRepo
 }
 
 // GetListByType ...
@@ -28,5 +30,6 @@ func (t TaskBusiness) GetListByType(ctx context.Context, req *rpc.Task_GetListBy
 // CreateTask ...
 func (t TaskBusiness) CreateTask(ctx context.Context, req *rpc.Task_CreateTask) (*rpc.Task_Model, error) {
 	t.producer.Send(ctx, "hello", "world")
-	return req.Data, nil
+	task, _ := t.task.CreateTask(ctx, req.Data)
+	return task, nil
 }
