@@ -1,7 +1,9 @@
 package constant
 
 const (
-	TaskTopic    = "cron-task"
-	StartCommand = "START"
-	StopCommand  = "STOP"
+	TaskTopic     = "job-task"
+	StartCommand  = "START"
+	StopCommand   = "STOP"
+	AddCommand    = "ADD"
+	RemoveCommand = "REMOVE"
 )

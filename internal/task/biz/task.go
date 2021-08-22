@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"github.com/golang/protobuf/proto"
 	"github.com/qmdx00/crobjob/internal/task/constant"
 	"github.com/qmdx00/crobjob/internal/task/data"
 	"github.com/qmdx00/crobjob/internal/task/producer"
@@ -49,6 +50,20 @@ func (t *TaskBusiness) CreateTask(ctx context.Context, req *rpc.Task_CreateTask)
 		return nil, errors.New("bad request")
 	}
 	task, _ := t.task.CreateTask(ctx, req)
+	// protobuf encode
+	binary, _ := proto.Marshal(task)
+	t.producer.Send(ctx, constant.AddCommand, binary)
+	return task, nil
+}
+
+func (t *TaskBusiness) DeleteTask(ctx context.Context, req *rpc.Task_DeleteTask) (*rpc.Task_Model, error) {
+	if req.Key == "" {
+		return nil, errors.New("params error")
+	}
+	task, _ := t.task.DeleteTask(ctx, req)
+	// protobuf encode
+	binary, _ := proto.Marshal(task)
+	t.producer.Send(ctx, constant.RemoveCommand, binary)
 	return task, nil
 }
 
@@ -57,7 +72,14 @@ func (t *TaskBusiness) StartTask(ctx context.Context, req *rpc.Task_StartTask) (
 	if req.Key == "" {
 		return nil, errors.New("params error")
 	}
-	t.producer.Send(ctx, req.Key, constant.StartCommand)
+	task, err := t.task.GetByTaskId(ctx, &rpc.Task_GetTaskByKey{Key: req.Key})
+	if err != nil {
+		return nil, err
+	}
+	// protobuf encode
+	binary, _ := proto.Marshal(task)
+	t.producer.Send(ctx, constant.StartCommand, binary)
+
 	return &rpc.Task_StartTaskResp{Message: "START SEND"}, nil
 }
 
@@ -66,6 +88,13 @@ func (t TaskBusiness) StopTask(ctx context.Context, req *rpc.Task_StopTask) (*rp
 	if req.Key == "" {
 		return nil, errors.New("params error")
 	}
-	t.producer.Send(ctx, req.Key, constant.StopCommand)
+	task, err := t.task.GetByTaskId(ctx, &rpc.Task_GetTaskByKey{Key: req.Key})
+	if err != nil {
+		return nil, err
+	}
+	// protobuf encode
+	binary, _ := proto.Marshal(task)
+	t.producer.Send(ctx, constant.StopCommand, binary)
+
 	return &rpc.Task_StopTaskResp{Message: "STOP SEND"}, nil
 }

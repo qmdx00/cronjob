@@ -7,8 +7,8 @@ package main
 
 import (
 	"github.com/qmdx00/crobjob/internal/worker/config"
-	"github.com/qmdx00/crobjob/internal/worker/cron"
 	"github.com/qmdx00/crobjob/internal/worker/handler"
+	"github.com/qmdx00/crobjob/internal/worker/job"
 	"github.com/qmdx00/crobjob/internal/worker/log"
 	"github.com/qmdx00/crobjob/internal/worker/server"
 	"github.com/qmdx00/crobjob/pkg/lifecycle"
@@ -19,9 +19,9 @@ import (
 func initApp() (*lifecycle.App, func(), error) {
 	workerConfig := config.NewWorkerConfig()
 	logger := log.NewWorkerLogger(workerConfig)
-	job := cron.NewRootCron(logger)
+	cronJob := job.NewRootJob(logger)
 	receive := handler.NewTaskHandler(logger)
-	v, err := server.NewServers(job, workerConfig, logger, receive)
+	v, err := server.NewServers(cronJob, workerConfig, logger, receive)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -43,6 +43,26 @@ func (b *TaskBusiness) CreateTask(ctx *gin.Context) {
 	})
 }
 
+// DeleteTask ...
+func (b *TaskBusiness) DeleteTask(ctx *gin.Context) {
+	key := ctx.Param("key")
+	if key == "" {
+		ctx.Error(errors.New("params error"))
+		return
+	}
+
+	spanCtx, _ := ctx.Get("context")
+	deleted, err := b.client.DeleteTask(spanCtx.(context.Context), &rpc.Task_DeleteTask{Key: key})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"task": deleted,
+	})
+}
+
 func (b *TaskBusiness) GetAllTask(ctx *gin.Context) {
 	spanCtx, _ := ctx.Get("context")
 

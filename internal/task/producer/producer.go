@@ -33,7 +33,7 @@ func NewProducer(config *config.TaskConfig) (*TaskProducer, func(), error) {
 	}, nil
 }
 
-func (t *TaskProducer) Send(ctx context.Context, key, value string) (int32, int64, error) {
+func (t *TaskProducer) Send(ctx context.Context, key string, value []byte) (int32, int64, error) {
 	span, _ := opentracing.StartSpanFromContext(
 		ctx, key, opentracing.Tag{Key: string(ext.Component), Value: "Kafka producer"})
 	defer span.Finish()
@@ -41,6 +41,6 @@ func (t *TaskProducer) Send(ctx context.Context, key, value string) (int32, int6
 	return t.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: constant.TaskTopic,
 		Key:   sarama.StringEncoder(key),
-		Value: sarama.StringEncoder(value),
+		Value: sarama.ByteEncoder(value),
 	})
 }

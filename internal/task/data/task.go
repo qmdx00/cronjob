@@ -10,6 +10,7 @@ import (
 // TaskRepo ...
 type TaskRepo interface {
 	CreateTask(context.Context, *rpc.Task_CreateTask) (*rpc.Task_Model, error)
+	DeleteTask(context.Context, *rpc.Task_DeleteTask) (*rpc.Task_Model, error)
 	GetByTaskId(context.Context, *rpc.Task_GetTaskByKey) (*rpc.Task_Model, error)
 	GetAllTask(context.Context, *rpc.Task_GetAllTask) (*rpc.Task_List, error)
 }
@@ -37,6 +38,13 @@ func (t *Task) CreateTask(ctx context.Context, req *rpc.Task_CreateTask) (*rpc.T
 		Extra:       req.Data.Extra,
 	}
 	r := t.db.WithContext(ctx).Model(rpc.Task_Model{}).Create(task)
+	return task, r.Error
+}
+
+// DeleteTask ...
+func (t *Task) DeleteTask(ctx context.Context, req *rpc.Task_DeleteTask) (*rpc.Task_Model, error) {
+	task := &rpc.Task_Model{}
+	r := t.db.WithContext(ctx).Model(rpc.Task_Model{}).Where("`key` = ?", req.Key).Delete(task)
 	return task, r.Error
 }
 

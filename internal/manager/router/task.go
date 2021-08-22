@@ -9,8 +9,8 @@ import (
 func RegisterTaskRouter(group *gin.RouterGroup, task *biz.TaskBusiness) {
 	group.POST("/tasks", task.CreateTask)
 	group.GET("/tasks", task.GetAllTask)
+	group.POST("/tasks/:key", task.DeleteTask)
 	group.GET("/tasks/:key", task.GetTaskByKey)
 	group.GET("/tasks/:key/actions/start", task.StartTask)
 	group.GET("/tasks/:key/actions/stop", task.StopTask)
-
 }

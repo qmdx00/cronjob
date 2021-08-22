@@ -9,16 +9,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// Receive ...
 type Receive interface {
 	Consume(msg *sarama.ConsumerMessage)
 }
 
+// TaskConsumer ...
 type TaskConsumer struct {
 	consumer sarama.Consumer
-	log     *zap.Logger
-	receive Receive
+	log      *zap.Logger
+	receive  Receive
 }
 
+// NewTaskConsumer ...
 func NewTaskConsumer(config *config.WorkerConfig, log *zap.Logger, receive Receive) (transport.Server, error) {
 	brokers := config.Viper.GetStringSlice("resource.kafka.brokers")
 	consumer, err := sarama.NewConsumer(brokers, sarama.NewConfig())
@@ -29,6 +32,7 @@ func NewTaskConsumer(config *config.WorkerConfig, log *zap.Logger, receive Recei
 	return &TaskConsumer{consumer: consumer, log: log, receive: receive}, nil
 }
 
+// Start ...
 func (t *TaskConsumer) Start(ctx context.Context) error {
 	part, err := t.consumer.ConsumePartition(constant.TaskTopic, 0, sarama.OffsetNewest)
 	if err != nil {
@@ -45,6 +49,7 @@ func (t *TaskConsumer) Start(ctx context.Context) error {
 	}
 }
 
-func (t *TaskConsumer) Stop(ctx context.Context) error {
+// Stop ...
+func (t *TaskConsumer) Stop(_ context.Context) error {
 	return t.consumer.Close()
 }

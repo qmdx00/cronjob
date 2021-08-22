@@ -29,6 +29,10 @@ message Task {
         Model data = 1;
     }
 
+    message DeleteTask {
+        string key = 1;
+    }
+
     message StartTask {
         string key = 1;
     }
@@ -50,6 +54,7 @@ service TaskService {
     rpc GetByTaskId(Task.GetTaskByKey) returns (Task.Model);
     rpc GetAllTask(Task.GetAllTask) returns (Task.List);
     rpc CreateTask(Task.CreateTask) returns (Task.Model);
+    rpc DeleteTask(Task.DeleteTask) returns (Task.Model);
     rpc StartTask(Task.StartTask) returns (Task.StartTaskResp);
     rpc StopTask(Task.StopTask) returns (Task.StopTaskResp);
 }
