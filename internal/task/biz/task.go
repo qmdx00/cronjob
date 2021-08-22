@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"github.com/qmdx00/crobjob/internal/task/constant"
 	"github.com/qmdx00/crobjob/internal/task/data"
 	"github.com/qmdx00/crobjob/internal/task/producer"
 	"github.com/qmdx00/crobjob/rpc"
@@ -56,7 +57,7 @@ func (t *TaskBusiness) StartTask(ctx context.Context, req *rpc.Task_StartTask) (
 	if req.Key == "" {
 		return nil, errors.New("params error")
 	}
-	t.producer.Send(ctx, req.Key, "START")
+	t.producer.Send(ctx, req.Key, constant.StartCommand)
 	return &rpc.Task_StartTaskResp{Message: "START SEND"}, nil
 }
 
@@ -65,6 +66,6 @@ func (t TaskBusiness) StopTask(ctx context.Context, req *rpc.Task_StopTask) (*rp
 	if req.Key == "" {
 		return nil, errors.New("params error")
 	}
-	t.producer.Send(ctx, req.Key, "STOP")
+	t.producer.Send(ctx, req.Key, constant.StopCommand)
 	return &rpc.Task_StopTaskResp{Message: "STOP SEND"}, nil
 }
