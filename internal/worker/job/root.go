@@ -1,7 +1,6 @@
 package job
 
 import (
-	"github.com/robfig/cron"
 	"go.uber.org/zap"
 )
 
@@ -11,7 +10,7 @@ type RootJob struct {
 }
 
 // NewRootJob ...
-func NewRootJob(log *zap.Logger) cron.Job {
+func NewRootJob(log *zap.Logger) *RootJob {
 	return &RootJob{log: log}
 }
 

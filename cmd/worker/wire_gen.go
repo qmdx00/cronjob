@@ -19,9 +19,9 @@ import (
 func initApp() (*lifecycle.App, func(), error) {
 	workerConfig := config.NewWorkerConfig()
 	logger := log.NewWorkerLogger(workerConfig)
-	cronJob := job.NewRootJob(logger)
+	rootJob := job.NewRootJob(logger)
 	receive := handler.NewTaskHandler(logger)
-	v, err := server.NewServers(cronJob, workerConfig, logger, receive)
+	v, err := server.NewServers(rootJob, workerConfig, logger, receive)
 	if err != nil {
 		return nil, nil, err
 	}
